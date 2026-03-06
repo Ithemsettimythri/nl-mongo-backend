@@ -10,7 +10,7 @@ app.use(express.json());
 
 app.use("/query", queryRoutes);
 
-mongoose.connect("mongodb://127.0.0.1:27017/nlmongo");
+mongoose.connect(process.env.MONGO_URI);
 
 app.listen(5000, () => {
   console.log("Server running on http://localhost:5000");

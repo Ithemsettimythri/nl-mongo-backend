@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Natural Language MongoDB Query</title>
+
+  <style>
+
+    body{
+      font-family: Arial;
+      max-width:900px;
+      margin:auto;
+      padding:20px;
+      background:#f5f7fb;
+    }
+
+    h1{
+      text-align:center;
+      color:#333;
+    }
+
+    input{
+      padding:8px;
+      margin:5px;
+      width:250px;
+      border-radius:4px;
+      border:1px solid #ccc;
+    }
+
+    button{
+      padding:8px 15px;
+      background:#007bff;
+      color:white;
+      border:none;
+      border-radius:5px;
+      cursor:pointer;
+    }
+
+    button:hover{
+      background:#0056b3;
+    }
+
+    #summary{
+      margin-top:15px;
+      font-weight:bold;
+    }
+
+    .card{
+      background:white;
+      padding:12px;
+      margin:10px 0;
+      border-radius:6px;
+      box-shadow:0 2px 5px rgba(0,0,0,0.1);
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+<h1>Natural Language MongoDB Query</h1>
+
+<h3>Search Users</h3>
+
+<input id="queryInput" placeholder="Example: amount > 5000">
+<button id="searchBtn">Search</button>
+
+<div id="summary"></div>
+
+<div id="results"></div>
+
+<hr>
+
+<h3>Add New User</h3>
+
+<input id="nameInput" placeholder="Name"><br>
+<input id="emailInput" placeholder="Email"><br>
+<input id="amountInput" type="number" placeholder="Amount"><br>
+
+<button id="addUserBtn">Add User</button>
+
+<script>
+
+const searchBtn = document.getElementById("searchBtn");
+const queryInput = document.getElementById("queryInput");
+const results = document.getElementById("results");
+const summary = document.getElementById("summary");
+
+searchBtn.addEventListener("click", async () => {
+
+  const text = queryInput.value.trim();
+
+  if(!text){
+    alert("Enter query");
+    return;
+  }
+
+  try{
+
+    const response = await fetch("http://localhost:5000/query",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({text})
+    });
+
+    const data = await response.json();
+
+    results.innerHTML="";
+    summary.innerHTML="";
+
+    if(!Array.isArray(data) || data.length===0){
+      summary.innerHTML="No users found";
+      return;
+    }
+
+    let totalAmount=0;
+
+    data.forEach(user=>{
+
+      totalAmount+=user.amount;
+
+      const div=document.createElement("div");
+      div.className="card";
+
+      div.innerHTML=`
+      <strong>Name:</strong> ${user.name}<br>
+      <strong>Email:</strong> ${user.email}<br>
+      <strong>Amount:</strong> $${user.amount}<br>
+      <strong>Registered:</strong> ${new Date(user.registeredAt).toLocaleDateString()}
+      `;
+
+      results.appendChild(div);
+
+    });
+
+    summary.innerHTML=`Total Users: ${data.length} | Total Amount: $${totalAmount}`;
+
+  }
+  catch(err){
+
+    console.log(err);
+    alert("Backend error");
+
+  }
+
+});
+
+
+const addUserBtn=document.getElementById("addUserBtn");
+const nameInput=document.getElementById("nameInput");
+const emailInput=document.getElementById("emailInput");
+const amountInput=document.getElementById("amountInput");
+
+addUserBtn.addEventListener("click", async ()=>{
+
+  const name=nameInput.value.trim();
+  const email=emailInput.value.trim();
+  const amount=parseFloat(amountInput.value);
+
+  if(!name || !email || !amount){
+    alert("Fill all fields");
+    return;
+  }
+
+  try{
+
+    const response=await fetch("http://localhost:5000/query/add",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({name,email,amount})
+    });
+
+    const data=await response.json();
+
+    alert("User added successfully");
+
+    nameInput.value="";
+    emailInput.value="";
+    amountInput.value="";
+
+  }
+  catch(err){
+
+    console.log(err);
+    alert("Error adding user");
+
+  }
+
+});
+
+</script>
+
+</body>
+</html>

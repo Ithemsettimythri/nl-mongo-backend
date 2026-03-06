@@ -1,7 +1,11 @@
+
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
+import dotenv from "dotenv";
 import queryRoutes from "./routes/query.js";
+
+dotenv.config();
 
 const app = express();
 
